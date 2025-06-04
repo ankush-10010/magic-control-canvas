@@ -81,8 +81,8 @@ const DocumentationPanel = () => {
                             <ul className="text-xs text-slate-400 mt-1">
                               <li>• 0.0: No effect</li>
                               <li>• 1.0: Full strength (recommended)</li>
-                              <li>• >1.0: Amplified effect</li>
-                              <li>• <0.0: Negative/inverse effect</li>
+                              <li>• &gt;1.0: Amplified effect</li>
+                              <li>• &lt;0.0: Negative/inverse effect</li>
                             </ul>
                           </div>
                         </div>
@@ -288,8 +288,7 @@ class ControlNet:
 
 // Multiple ControlNets
 for controlnet in controlnets:
-    if current_step >= controlnet.start_step and 
-       current_step <= controlnet.end_step:
+    if current_step >= controlnet.start_step and current_step <= controlnet.end_step:
         control_signal += controlnet.strength * controlnet(control_image)`}</pre>
                         </code>
                       </div>
