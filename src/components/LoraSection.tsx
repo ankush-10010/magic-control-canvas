@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Plus, X, Layers, Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useToast } from "@/hooks/use-toast";
 
 interface LoraItem {
   id: string;
@@ -20,18 +20,63 @@ const LoraSection = () => {
   const [loras, setLoras] = useState<LoraItem[]>([]);
   const [newLoraName, setNewLoraName] = useState('');
   const [newLoraPath, setNewLoraPath] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
-  const addLora = () => {
-    if (newLoraName && newLoraPath) {
-      const newLora: LoraItem = {
-        id: Date.now().toString(),
-        name: newLoraName,
-        path: newLoraPath,
-        scale: 1.0
-      };
-      setLoras([...loras, newLora]);
-      setNewLoraName('');
-      setNewLoraPath('');
+  const addLora = async () => {
+    if (!newLoraPath) {
+      toast({
+        title: "Error",
+        description: "LoRA Path/ID is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("lora_path", newLoraPath);
+
+      const response = await fetch("http://localhost:8000/load-lora/", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        // Add to local state for UI tracking
+        const newLora: LoraItem = {
+          id: Date.now().toString(),
+          name: newLoraName || newLoraPath,
+          path: newLoraPath,
+          scale: 1.0
+        };
+        setLoras([...loras, newLora]);
+        setNewLoraName('');
+        setNewLoraPath('');
+
+        toast({
+          title: "Success",
+          description: result.message || "LoRA loaded successfully",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: result.detail || result.message || "Failed to load LoRA",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to connect to the backend. Make sure your FastAPI server is running on http://localhost:8000",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -68,31 +113,42 @@ const LoraSection = () => {
         <div className="space-y-3 p-4 bg-slate-900/50 rounded-lg border border-slate-600">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-slate-300 text-sm">Name</Label>
+              <Label className="text-slate-300 text-sm">Name (Optional)</Label>
               <Input
                 value={newLoraName}
                 onChange={(e) => setNewLoraName(e.target.value)}
                 placeholder="LoRA name"
                 className="bg-slate-800 border-slate-600 text-white"
+                disabled={isLoading}
               />
             </div>
             <div>
-              <Label className="text-slate-300 text-sm">Path/ID</Label>
+              <Label className="text-slate-300 text-sm">Path/ID *</Label>
               <Input
                 value={newLoraPath}
                 onChange={(e) => setNewLoraPath(e.target.value)}
                 placeholder="model/path or ID"
                 className="bg-slate-800 border-slate-600 text-white"
+                disabled={isLoading}
               />
             </div>
           </div>
           <Button 
             onClick={addLora}
             className="w-full bg-purple-600 hover:bg-purple-700"
-            disabled={!newLoraName || !newLoraPath}
+            disabled={!newLoraPath || isLoading}
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Add LoRA
+            {isLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Loading LoRA...
+              </>
+            ) : (
+              <>
+                <Plus className="w-4 h-4 mr-2" />
+                Add LoRA
+              </>
+            )}
           </Button>
         </div>
 
