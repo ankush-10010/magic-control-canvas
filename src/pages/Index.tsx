@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Play, Settings, Info, Image as ImageIcon, Layers, Zap } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import LoraSection from "@/components/LoraSection";
 import ControlSection from "@/components/ControlSection";
 import DocumentationPanel from "@/components/DocumentationPanel";
@@ -15,13 +16,67 @@ const Index = () => {
   const [prompt, setPrompt] = useState("Extreme close-up of a single tiger eye, direct frontal view. Detailed iris and pupil. Sharp focus on eye texture and color. Natural lighting to capture authentic eye shine and depth. The word \"FLUX\" is painted over it in big, white brush strokes with visible texture.");
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeTab, setActiveTab] = useState("playground");
+  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const { toast } = useToast();
 
-  const handleGenerate = () => {
+  // Backend configuration
+  const backendUrl = "http://localhost:8000"; // Change this to your ngrok URL when needed
+
+  const handleGenerate = async () => {
+    if (!prompt.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a prompt",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsGenerating(true);
-    // Simulate generation time
-    setTimeout(() => {
+    setGeneratedImage(null);
+
+    try {
+      const response = await fetch(`${backendUrl}/generate-image/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
+        },
+        body: JSON.stringify({
+          prompt: prompt,
+          width: 512,
+          height: 512,
+          guidance_scale: 7.5,
+          num_inference_steps: 20
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Convert response to blob
+      const imageBlob = await response.blob();
+      
+      // Create object URL from blob
+      const imageUrl = URL.createObjectURL(imageBlob);
+      setGeneratedImage(imageUrl);
+
+      toast({
+        title: "Success",
+        description: "Image generated successfully!",
+      });
+
+    } catch (error) {
+      console.error('Error generating image:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate image. Make sure your backend is running.",
+        variant: "destructive",
+      });
+    } finally {
       setIsGenerating(false);
-    }, 3000);
+    }
   };
 
   return (
@@ -85,7 +140,7 @@ const Index = () => {
 
                 <Button 
                   onClick={handleGenerate}
-                  disabled={isGenerating}
+                  disabled={isGenerating || !prompt.trim()}
                   className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium py-3"
                 >
                   {isGenerating ? (
@@ -110,12 +165,12 @@ const Index = () => {
                       <ImageIcon className="w-5 h-5" />
                       Result
                       <Badge variant="secondary" className="ml-auto bg-slate-700 text-slate-300">
-                        Idle
+                        {isGenerating ? "Generating..." : generatedImage ? "Complete" : "Idle"}
                       </Badge>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="aspect-square bg-slate-900/50 border-2 border-dashed border-slate-600 rounded-lg flex items-center justify-center">
+                    <div className="aspect-square bg-slate-900/50 border-2 border-dashed border-slate-600 rounded-lg flex items-center justify-center overflow-hidden">
                       {isGenerating ? (
                         <div className="text-center">
                           <div className="animate-pulse">
@@ -123,10 +178,20 @@ const Index = () => {
                             <p className="text-slate-400">Generating your image...</p>
                           </div>
                         </div>
+                      ) : generatedImage ? (
+                        <img 
+                          src={generatedImage} 
+                          alt="Generated image"
+                          className="w-full h-full object-contain rounded-lg"
+                          onLoad={() => {
+                            // Clean up object URL after image loads
+                            URL.revokeObjectURL(generatedImage);
+                          }}
+                        />
                       ) : (
                         <div className="text-center">
                           <ImageIcon className="w-16 h-16 text-slate-500 mx-auto mb-4" />
-                          <p className="text-slate-500">Waiting for your input</p>
+                          <p className="text-slate-500">Click Generate to create an image</p>
                         </div>
                       )}
                     </div>
