@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,7 +19,7 @@ const Index = () => {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Backend configuration
+  // Backend configuration - replace with your ngrok URL
   const backendUrl = "http://localhost:8000"; // Change this to your ngrok URL when needed
 
   const handleGenerate = async () => {
@@ -35,6 +36,8 @@ const Index = () => {
     setGeneratedImage(null);
 
     try {
+      console.log("Sending request to backend...");
+      
       const response = await fetch(`${backendUrl}/generate-image/`, {
         method: 'POST',
         headers: {
@@ -50,12 +53,15 @@ const Index = () => {
         })
       });
 
+      console.log("Response status:", response.status);
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       // Convert response to blob
       const imageBlob = await response.blob();
+      console.log("Image blob received, size:", imageBlob.size);
       
       // Create object URL from blob
       const imageUrl = URL.createObjectURL(imageBlob);
