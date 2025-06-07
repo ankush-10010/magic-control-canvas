@@ -56,6 +56,8 @@ const Index = () => {
       console.log("Response status:", response.status);
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Backend error:", errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -65,6 +67,7 @@ const Index = () => {
       
       // Create object URL from blob
       const imageUrl = URL.createObjectURL(imageBlob);
+      console.log("Image URL created:", imageUrl);
       setGeneratedImage(imageUrl);
 
       toast({
@@ -82,6 +85,20 @@ const Index = () => {
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  // Clean up object URL when component unmounts or image changes
+  const handleImageLoad = () => {
+    console.log("Image loaded successfully");
+  };
+
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.error("Image failed to load:", e);
+    toast({
+      title: "Error",
+      description: "Failed to display the generated image",
+      variant: "destructive",
+    });
   };
 
   return (
@@ -187,11 +204,9 @@ const Index = () => {
                         <img 
                           src={generatedImage} 
                           alt="Generated image"
-                          className="w-full h-full object-contain rounded-lg"
-                          onLoad={() => {
-                            // Clean up object URL after image loads
-                            URL.revokeObjectURL(generatedImage);
-                          }}
+                          className="w-full h-full object-cover rounded-lg"
+                          onLoad={handleImageLoad}
+                          onError={handleImageError}
                         />
                       ) : (
                         <div className="text-center">
