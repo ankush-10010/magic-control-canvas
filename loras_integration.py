@@ -86,17 +86,49 @@ try:
 except Exception as e:
     print("❌ Failed to generate image:", str(e))
 
-# LoRA loading endpoint
+# LoRA loading endpoint  ("this is for basic LoRA loading, not for LoRA with multiple safetensors")
+# This endpoint allows you to load a LoRA model from a specified path.
+# @app.post("/load-lora/")
+# async def load_lora(
+#     lora_path: str = Form(...)
+# ):
+#     try:
+#         pipe.load_lora_weights(lora_path)
+#         return {"message": f"LoRA loaded from {lora_path}"}
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Failed to load LoRA: {str(e)}")
+    
+from fastapi import Form
+from fastapi import HTTPException
+import os
+import re
+"""this is for LoRA with multiple safetensors files ,
+ which are usually the case in hugging face lora models
+"""
+
 @app.post("/load-lora/")
-async def load_lora(
-    lora_path: str = Form(...)
-):
+async def load_lora(lora_dir: str = Form(...)):
     try:
-        pipe.load_lora_weights(lora_path)
-        return {"message": f"LoRA loaded from {lora_path}"}
+        if not os.path.exists(lora_dir):
+            raise ValueError(f"Directory {lora_dir} does not exist")
+
+        safetensors_files = [f for f in os.listdir(lora_dir) if f.endswith(".safetensors")]
+        if not safetensors_files:
+            raise ValueError("No .safetensors files found in the provided directory.")
+
+        # Pick the one with highest step number
+        def extract_step(filename):
+            match = re.search(r"-(\d+)\.safetensors$", filename)
+            return int(match.group(1)) if match else -1
+
+        best_file = max(safetensors_files, key=extract_step)
+        best_file_path = os.path.join(lora_dir, best_file)
+
+        pipe.load_lora_weights(best_file_path)
+        return {"message": f"Loaded best LoRA: {best_file}"}
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to load LoRA: {str(e)}")
-
 
 # Prompt input model
 class PromptRequest(BaseModel):
