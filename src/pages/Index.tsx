@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,6 +10,7 @@ import { Plus, Play, Settings, Info, Image as ImageIcon, Layers, Zap, Check } fr
 import { useToast } from "@/hooks/use-toast";
 import LoraSection from "@/components/LoraSection";
 import ControlSection from "@/components/ControlSection";
+import ControlNetManager from "@/components/ControlNetManager";
 import DocumentationPanel from "@/components/DocumentationPanel";
 
 const Index = () => {
@@ -199,6 +201,10 @@ const Index = () => {
                   </div>
                   
                   <div className="animate-in slide-in-from-left-2 duration-700 delay-200">
+                    <ControlNetManager />
+                  </div>
+
+                  <div className="animate-in slide-in-from-left-2 duration-700 delay-300">
                     <ControlSection />
                   </div>
 
