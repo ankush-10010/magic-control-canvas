@@ -5,12 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Play, Settings, Info, Image as ImageIcon, Layers, Zap, Check } from "lucide-react";
+import { Plus, Play, Settings, Info, Image as ImageIcon, Layers, Zap, Check, Upload, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import LoraSection from "@/components/LoraSection";
 import ControlNetManager from "@/components/ControlNetManager";
 import PipelineStatusPanel from "@/components/PipelineStatusPanel";
 import DocumentationPanel from "@/components/DocumentationPanel";
+import GenerationControls from "@/components/GenerationControls";
 
 const Index = () => {
   const [prompt, setPrompt] = useState("Extreme close-up of a single tiger eye, direct frontal view. Detailed iris and pupil. Sharp focus on eye texture and color. Natural lighting to capture authentic eye shine and depth. The word \"FLUX\" is painted over it in big, white brush strokes with visible texture.");
@@ -19,10 +20,30 @@ const Index = () => {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isPromptFocused, setIsPromptFocused] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  
+  // New generation parameters
+  const [width, setWidth] = useState(512);
+  const [height, setHeight] = useState(512);
+  const [numInferenceSteps, setNumInferenceSteps] = useState(20);
+  const [guidanceScale, setGuidanceScale] = useState(7.5);
+  const [controlImage, setControlImage] = useState<File | null>(null);
+  const [loraScales, setLoraScales] = useState<Record<string, number>>({});
+  
   const { toast } = useToast();
 
   // Backend configuration - replace with your ngrok URL
   const backendUrl = "http://localhost:8000"; // Change this to your ngrok URL when needed
+
+  const handleControlImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setControlImage(file);
+    }
+  };
+
+  const removeControlImage = () => {
+    setControlImage(null);
+  };
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -40,19 +61,31 @@ const Index = () => {
     try {
       console.log("Sending request to backend...");
       
+      // Create FormData for multipart request
+      const formData = new FormData();
+      formData.append('prompt', prompt);
+      formData.append('height', height.toString());
+      formData.append('width', width.toString());
+      formData.append('num_inference_steps', numInferenceSteps.toString());
+      formData.append('guidance_scale', guidanceScale.toString());
+      
+      // Add control image if selected
+      if (controlImage) {
+        formData.append('control_image', controlImage);
+      }
+      
+      // Add LoRA scales if any
+      if (Object.keys(loraScales).length > 0) {
+        formData.append('lora_scales', JSON.stringify(loraScales));
+      }
+
       const response = await fetch(`${backendUrl}/generate-image/`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'ngrok-skip-browser-warning': 'true'
+          // Don't set Content-Type for FormData, let browser set it with boundary
         },
-        body: JSON.stringify({
-          prompt: prompt,
-          width: 512,
-          height: 512,
-          guidance_scale: 7.5,
-          num_inference_steps: 20
-        })
+        body: formData
       });
 
       console.log("Response status:", response.status);
@@ -192,8 +225,64 @@ const Index = () => {
                           )}
                         </div>
                       </div>
+
+                      {/* ControlNet Image Upload */}
+                      <div>
+                        <label className="text-sm font-medium text-slate-300 mb-2 block flex items-center gap-2">
+                          ControlNet Image (Optional)
+                          <Info className="w-4 h-4 text-slate-500" />
+                        </label>
+                        {controlImage ? (
+                          <div className="relative">
+                            <img 
+                              src={URL.createObjectURL(controlImage)} 
+                              alt="Control image" 
+                              className="w-full h-32 object-cover rounded-lg border border-slate-600"
+                            />
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={removeControlImage}
+                              className="absolute top-2 right-2"
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                            <p className="text-xs text-slate-400 mt-1">{controlImage.name}</p>
+                          </div>
+                        ) : (
+                          <div className="border-2 border-dashed border-slate-600 rounded-lg p-4 text-center hover:border-slate-500 transition-colors">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleControlImageUpload}
+                              className="hidden"
+                              id="control-image-upload"
+                            />
+                            <label 
+                              htmlFor="control-image-upload" 
+                              className="cursor-pointer flex flex-col items-center gap-2"
+                            >
+                              <Upload className="w-6 h-6 text-slate-500" />
+                              <span className="text-sm text-slate-400">Click to upload control image</span>
+                            </label>
+                          </div>
+                        )}
+                      </div>
                     </CardContent>
                   </Card>
+
+                  <GenerationControls
+                    width={width}
+                    height={height}
+                    numInferenceSteps={numInferenceSteps}
+                    guidanceScale={guidanceScale}
+                    loraScales={loraScales}
+                    onWidthChange={setWidth}
+                    onHeightChange={setHeight}
+                    onStepsChange={setNumInferenceSteps}
+                    onGuidanceScaleChange={setGuidanceScale}
+                    onLoraScalesChange={setLoraScales}
+                  />
 
                   <div className="animate-in slide-in-from-left-2 duration-700 delay-100">
                     <PipelineStatusPanel />
@@ -346,3 +435,5 @@ const Index = () => {
 };
 
 export default Index;
+
+</edits_to_apply>
