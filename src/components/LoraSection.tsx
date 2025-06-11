@@ -35,11 +35,21 @@ const LoraSection = () => {
       return;
     }
 
+    if (!newLoraName) {
+      toast({
+        title: "Error",
+        description: "LoRA Name is required (used as adapter name)",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       const formData = new FormData();
       formData.append("lora_path", newLoraPath);
+      formData.append("adapter_name", newLoraName);
 
       const response = await fetch("http://localhost:8000/load-lora/", {
         method: "POST",
@@ -52,7 +62,7 @@ const LoraSection = () => {
         // Add to local state for UI tracking
         const newLora: LoraItem = {
           id: Date.now().toString(),
-          name: newLoraName || newLoraPath,
+          name: newLoraName,
           path: newLoraPath,
           scale: 1.0
         };
@@ -119,11 +129,11 @@ const LoraSection = () => {
         <div className="space-y-3 p-4 bg-slate-900/50 rounded-lg border border-slate-600 hover:border-slate-500 transition-all duration-300 hover:shadow-md">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-slate-300 text-sm">Name (Optional)</Label>
+              <Label className="text-slate-300 text-sm">Name (Adapter Name) *</Label>
               <Input
                 value={newLoraName}
                 onChange={(e) => setNewLoraName(e.target.value)}
-                placeholder="LoRA name"
+                placeholder="LoRA adapter name"
                 className="bg-slate-800 border-slate-600 text-white transition-all duration-300 hover:border-slate-500 focus:border-purple-500 focus:shadow-lg focus:shadow-purple-500/25"
                 disabled={isLoading}
               />
@@ -143,7 +153,7 @@ const LoraSection = () => {
             <Button 
               onClick={addLora}
               className="w-full bg-purple-600 hover:bg-purple-700 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/50 active:scale-95"
-              disabled={!newLoraPath || isLoading}
+              disabled={!newLoraPath || !newLoraName || isLoading}
             >
               {isLoading ? (
                 <>
