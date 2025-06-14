@@ -46,7 +46,7 @@ const TabNavigation = ({ activeTab }: TabNavigationProps) => {
         <div 
           className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
           style={{
-            background: `radial-gradient(circle 80px at ${playgroundMousePos.x}px ${playgroundMousePos.y}px, rgba(255, 255, 0, 0.3), transparent 70%)`
+            background: `radial-gradient(circle 40px at ${playgroundMousePos.x}px ${playgroundMousePos.y}px, rgba(255, 255, 0, 0.3), transparent 70%)`
           }}
         />
         <span className="relative z-10">Playground</span>
@@ -59,7 +59,7 @@ const TabNavigation = ({ activeTab }: TabNavigationProps) => {
         <div 
           className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
           style={{
-            background: `radial-gradient(circle 80px at ${apiMousePos.x}px ${apiMousePos.y}px, rgba(255, 255, 0, 0.3), transparent 70%)`
+            background: `radial-gradient(circle 40px at ${apiMousePos.x}px ${apiMousePos.y}px, rgba(255, 255, 0, 0.3), transparent 70%)`
           }}
         />
         <span className="relative z-10">API</span>
@@ -72,7 +72,7 @@ const TabNavigation = ({ activeTab }: TabNavigationProps) => {
         <div 
           className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
           style={{
-            background: `radial-gradient(circle 80px at ${examplesMousePos.x}px ${examplesMousePos.y}px, rgba(255, 255, 0, 0.3), transparent 70%)`
+            background: `radial-gradient(circle 40px at ${examplesMousePos.x}px ${examplesMousePos.y}px, rgba(255, 255, 0, 0.3), transparent 70%)`
           }}
         />
         <span className="relative z-10">Examples</span>
@@ -85,7 +85,7 @@ const TabNavigation = ({ activeTab }: TabNavigationProps) => {
         <div 
           className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
           style={{
-            background: `radial-gradient(circle 80px at ${docsMousePos.x}px ${docsMousePos.y}px, rgba(255, 255, 0, 0.3), transparent 70%)`
+            background: `radial-gradient(circle 40px at ${docsMousePos.x}px ${docsMousePos.y}px, rgba(255, 255, 0, 0.3), transparent 70%)`
           }}
         />
         <span className="relative z-10">Documentation</span>
