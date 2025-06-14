@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Activity, RefreshCw, Zap, AlertCircle, CheckCircle, Circle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
+import { backendConfig, getApiUrl } from "@/config/backend";
 
 interface PipelineState {
   pipeline_type: string;
@@ -21,13 +21,11 @@ const PipelineStatusPanel = () => {
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const { toast } = useToast();
 
-  const backendUrl = "https://0f2d-35-240-133-85.ngrok-free.app";
-
   const fetchPipelineState = async (showLoadingIndicator = true) => {
     if (showLoadingIndicator) setIsLoading(true);
     try {
-      const response = await fetch(`${backendUrl}/pipeline-state/`, {
-        headers: { 'ngrok-skip-browser-warning': 'true' }
+      const response = await fetch(getApiUrl('/pipeline-state/'), {
+        headers: backendConfig.headers
       });
 
       if (response.ok) {

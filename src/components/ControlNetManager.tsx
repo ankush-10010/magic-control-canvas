@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Settings, Plus, Trash2, RefreshCw, Download, Info, Check, X } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
+import { backendConfig, getApiUrl } from "@/config/backend";
 
 interface ActiveControlNet {
   name: string;
@@ -37,14 +37,13 @@ const ControlNetManager = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   
   const { toast } = useToast();
-  const backendUrl = "https://0f2d-35-240-133-85.ngrok-free.app";
 
   // Fetch active ControlNets
   const fetchActiveControlNets = async () => {
     setIsLoadingList(true);
     try {
-      const response = await fetch(`${backendUrl}/active-controlnets/`, {
-        headers: { 'ngrok-skip-browser-warning': 'true' }
+      const response = await fetch(getApiUrl('/active-controlnets/'), {
+        headers: backendConfig.headers
       });
       
       if (response.ok) {
@@ -83,9 +82,9 @@ const ControlNetManager = () => {
       if (loraWeightsPath.trim()) formData.append("lora_weights_path", loraWeightsPath);
       formData.append("torch_dtype", torchDtype);
 
-      const response = await fetch(`${backendUrl}/load-controlnet/`, {
+      const response = await fetch(getApiUrl('/load-controlnet/'), {
         method: 'POST',
-        headers: { 'ngrok-skip-browser-warning': 'true' },
+        headers: backendConfig.headers,
         body: formData
       });
 
@@ -135,9 +134,9 @@ const ControlNetManager = () => {
       const formData = new FormData();
       formData.append("model_key", selectedForUnload);
 
-      const response = await fetch(`${backendUrl}/unload-controlnet/`, {
+      const response = await fetch(getApiUrl('/unload-controlnet/'), {
         method: 'DELETE',
-        headers: { 'ngrok-skip-browser-warning': 'true' },
+        headers: backendConfig.headers,
         body: formData
       });
 

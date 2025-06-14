@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, X, Layers, Info, Check } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
+import { getApiUrl } from "@/config/backend";
 
 interface LoraItem {
   id: string;
@@ -51,7 +51,7 @@ const LoraSection = () => {
       formData.append("lora_path", newLoraPath);
       formData.append("adapter_name", newLoraName);
 
-      const response = await fetch("https://0f2d-35-240-133-85.ngrok-free.app/load-lora/", {
+      const response = await fetch(getApiUrl("/load-lora/"), {
         method: "POST",
         body: formData,
       });

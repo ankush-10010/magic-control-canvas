@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +12,7 @@ import ControlNetManager from "@/components/ControlNetManager";
 import PipelineStatusPanel from "@/components/PipelineStatusPanel";
 import DocumentationPanel from "@/components/DocumentationPanel";
 import GenerationControls from "@/components/GenerationControls";
+import { backendConfig, getApiUrl } from "@/config/backend";
 
 const Index = () => {
   const [prompt, setPrompt] = useState("Extreme close-up of a single tiger eye, direct frontal view. Detailed iris and pupil. Sharp focus on eye texture and color. Natural lighting to capture authentic eye shine and depth. The word \"FLUX\" is painted over it in big, white brush strokes with visible texture.");
@@ -31,9 +31,6 @@ const Index = () => {
   const [loraScales, setLoraScales] = useState<Record<string, number>>({});
   
   const { toast } = useToast();
-
-  // Backend configuration - replace with your ngrok URL
-  const backendUrl = "https://0f2d-35-240-133-85.ngrok-free.app"; // Change this to your ngrok URL when needed
 
   const handleControlImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -80,12 +77,9 @@ const Index = () => {
         formData.append('lora_scales', JSON.stringify(loraScales));
       }
 
-      const response = await fetch(`${backendUrl}/generate-image/`, {
+      const response = await fetch(getApiUrl('/generate-image/'), {
         method: 'POST',
-        headers: {
-          'ngrok-skip-browser-warning': 'true'
-          // Don't set Content-Type for FormData, let browser set it with boundary
-        },
+        headers: backendConfig.headers,
         body: formData
       });
 
