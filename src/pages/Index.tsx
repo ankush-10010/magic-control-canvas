@@ -21,6 +21,7 @@ const Index = () => {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isPromptFocused, setIsPromptFocused] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   
   // New generation parameters
   const [width, setWidth] = useState(512);
@@ -31,6 +32,14 @@ const Index = () => {
   const [loraScales, setLoraScales] = useState<Record<string, number>>({});
   
   const { toast } = useToast();
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMousePosition({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+  };
 
   const handleControlImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -294,12 +303,24 @@ const Index = () => {
                   <div className="relative">
                     <Button 
                       onClick={handleGenerate}
+                      onMouseMove={handleMouseMove}
                       disabled={isGenerating || !prompt.trim()}
                       className={`w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium py-3 
-                        transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-purple-500/50 
+                        transition-all duration-300 hover:scale-105 hover:shadow-xl 
                         active:scale-95 disabled:hover:scale-100 disabled:hover:shadow-none
+                        relative overflow-hidden
                         ${isGenerating ? 'animate-pulse' : ''}
                       `}
+                      style={{
+                        background: isGenerating || !prompt.trim() ? undefined : `
+                          radial-gradient(circle 100px at ${mousePosition.x}px ${mousePosition.y}px, 
+                            rgba(147, 51, 234, 0.8), 
+                            rgba(147, 51, 234, 0.6) 50%, 
+                            rgba(147, 51, 234, 0.4) 100%
+                          ),
+                          linear-gradient(to right, rgb(147, 51, 234), rgb(219, 39, 119))
+                        `
+                      }}
                     >
                       {isGenerating ? (
                         <>
