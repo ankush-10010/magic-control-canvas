@@ -1,17 +1,13 @@
+
 import { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Plus, Play, Settings, Info, Image as ImageIcon, Layers, Zap, Check, Upload, X } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import LoraSection from "@/components/LoraSection";
-import ControlNetManager from "@/components/ControlNetManager";
-import PipelineStatusPanel from "@/components/PipelineStatusPanel";
+import TabNavigation from "@/components/TabNavigation";
+import PlaygroundContent from "@/components/PlaygroundContent";
 import DocumentationPanel from "@/components/DocumentationPanel";
-import GenerationControls from "@/components/GenerationControls";
 import { backendConfig, getApiUrl } from "@/config/backend";
 
 const Index = () => {
@@ -19,15 +15,7 @@ const Index = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeTab, setActiveTab] = useState("playground");
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
-  const [isPromptFocused, setIsPromptFocused] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  
-  // Tab button mouse positions
-  const [playgroundMousePos, setPlaygroundMousePos] = useState({ x: 0, y: 0 });
-  const [apiMousePos, setApiMousePos] = useState({ x: 0, y: 0 });
-  const [examplesMousePos, setExamplesMousePos] = useState({ x: 0, y: 0 });
-  const [docsMousePos, setDocsMousePos] = useState({ x: 0, y: 0 });
   
   // New generation parameters
   const [width, setWidth] = useState(512);
@@ -38,48 +26,6 @@ const Index = () => {
   const [loraScales, setLoraScales] = useState<Record<string, number>>({});
   
   const { toast } = useToast();
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    setMousePosition({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    });
-  };
-
-  const handleTabMouseMove = (e: React.MouseEvent<HTMLButtonElement>, tabName: string) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const pos = {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    };
-    
-    switch(tabName) {
-      case 'playground':
-        setPlaygroundMousePos(pos);
-        break;
-      case 'api':
-        setApiMousePos(pos);
-        break;
-      case 'examples':
-        setExamplesMousePos(pos);
-        break;
-      case 'docs':
-        setDocsMousePos(pos);
-        break;
-    }
-  };
-
-  const handleControlImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setControlImage(file);
-    }
-  };
-
-  const removeControlImage = () => {
-    setControlImage(null);
-  };
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -196,277 +142,31 @@ const Index = () => {
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 bg-slate-800/50 border-slate-700">
-              <TabsTrigger 
-                value="playground" 
-                onMouseMove={(e) => handleTabMouseMove(e, 'playground')}
-                className="data-[state=active]:bg-purple-600 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25 relative overflow-hidden"
-                style={{
-                  background: `
-                    radial-gradient(circle 80px at ${playgroundMousePos.x}px ${playgroundMousePos.y}px, 
-                      rgba(255, 255, 0, 0.3), 
-                      transparent 70%
-                    ),
-                    ${activeTab === 'playground' ? 'rgb(147, 51, 234)' : 'transparent'}
-                  `
-                }}
-              >
-                Playground
-              </TabsTrigger>
-              <TabsTrigger 
-                value="api" 
-                onMouseMove={(e) => handleTabMouseMove(e, 'api')}
-                className="data-[state=active]:bg-purple-600 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25 relative overflow-hidden"
-                style={{
-                  background: `
-                    radial-gradient(circle 80px at ${apiMousePos.x}px ${apiMousePos.y}px, 
-                      rgba(255, 255, 0, 0.3), 
-                      transparent 70%
-                    ),
-                    ${activeTab === 'api' ? 'rgb(147, 51, 234)' : 'transparent'}
-                  `
-                }}
-              >
-                API
-              </TabsTrigger>
-              <TabsTrigger 
-                value="examples" 
-                onMouseMove={(e) => handleTabMouseMove(e, 'examples')}
-                className="data-[state=active]:bg-purple-600 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25 relative overflow-hidden"
-                style={{
-                  background: `
-                    radial-gradient(circle 80px at ${examplesMousePos.x}px ${examplesMousePos.y}px, 
-                      rgba(255, 255, 0, 0.3), 
-                      transparent 70%
-                    ),
-                    ${activeTab === 'examples' ? 'rgb(147, 51, 234)' : 'transparent'}
-                  `
-                }}
-              >
-                Examples
-              </TabsTrigger>
-              <TabsTrigger 
-                value="docs" 
-                onMouseMove={(e) => handleTabMouseMove(e, 'docs')}
-                className="data-[state=active]:bg-purple-600 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25 relative overflow-hidden"
-                style={{
-                  background: `
-                    radial-gradient(circle 80px at ${docsMousePos.x}px ${docsMousePos.y}px, 
-                      rgba(255, 255, 0, 0.3), 
-                      transparent 70%
-                    ),
-                    ${activeTab === 'docs' ? 'rgb(147, 51, 234)' : 'transparent'}
-                  `
-                }}
-              >
-                Documentation
-              </TabsTrigger>
-            </TabsList>
+            <TabNavigation activeTab={activeTab} />
 
             <TabsContent value="playground" className="mt-6 animate-in slide-in-from-bottom-2 duration-500">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Input Section */}
-                <div className="space-y-6">
-                  <Card className="bg-slate-800/50 border-slate-700 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300">
-                    <CardHeader>
-                      <CardTitle className="text-white flex items-center gap-2">
-                        <Settings className="w-5 h-5" />
-                        Input
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div>
-                        <label className="text-sm font-medium text-slate-300 mb-2 block flex items-center gap-2">
-                          Prompt
-                          <Info className="w-4 h-4 text-slate-500" />
-                        </label>
-                        <div className="relative">
-                          <Textarea
-                            value={prompt}
-                            onChange={(e) => setPrompt(e.target.value)}
-                            onFocus={() => setIsPromptFocused(true)}
-                            onBlur={() => setIsPromptFocused(false)}
-                            placeholder="Describe what you want to generate..."
-                            className={`min-h-[120px] bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-400 resize-none transition-all duration-300 ${
-                              isPromptFocused 
-                                ? 'border-purple-500 shadow-lg shadow-purple-500/25 scale-[1.02]' 
-                                : 'hover:border-slate-500'
-                            }`}
-                          />
-                          {isPromptFocused && (
-                            <div className="absolute inset-0 rounded-md border-2 border-purple-500 animate-pulse pointer-events-none" />
-                          )}
-                        </div>
-                      </div>
-
-                      {/* ControlNet Image Upload */}
-                      <div>
-                        <label className="text-sm font-medium text-slate-300 mb-2 block flex items-center gap-2">
-                          ControlNet Image (Optional)
-                          <Info className="w-4 h-4 text-slate-500" />
-                        </label>
-                        {controlImage ? (
-                          <div className="relative">
-                            <img 
-                              src={URL.createObjectURL(controlImage)} 
-                              alt="Control image" 
-                              className="w-full h-32 object-cover rounded-lg border border-slate-600"
-                            />
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={removeControlImage}
-                              className="absolute top-2 right-2"
-                            >
-                              <X className="w-4 h-4" />
-                            </Button>
-                            <p className="text-xs text-slate-400 mt-1">{controlImage.name}</p>
-                          </div>
-                        ) : (
-                          <div className="border-2 border-dashed border-slate-600 rounded-lg p-4 text-center hover:border-slate-500 transition-colors">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={handleControlImageUpload}
-                              className="hidden"
-                              id="control-image-upload"
-                            />
-                            <label 
-                              htmlFor="control-image-upload" 
-                              className="cursor-pointer flex flex-col items-center gap-2"
-                            >
-                              <Upload className="w-6 h-6 text-slate-500" />
-                              <span className="text-sm text-slate-400">Click to upload control image</span>
-                            </label>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <GenerationControls
-                    width={width}
-                    height={height}
-                    numInferenceSteps={numInferenceSteps}
-                    guidanceScale={guidanceScale}
-                    loraScales={loraScales}
-                    onWidthChange={setWidth}
-                    onHeightChange={setHeight}
-                    onStepsChange={setNumInferenceSteps}
-                    onGuidanceScaleChange={setGuidanceScale}
-                    onLoraScalesChange={setLoraScales}
-                  />
-
-                  <div className="animate-in slide-in-from-left-2 duration-700 delay-100">
-                    <PipelineStatusPanel />
-                  </div>
-
-                  <div className="animate-in slide-in-from-left-2 duration-700 delay-200">
-                    <LoraSection />
-                  </div>
-                  
-                  <div className="animate-in slide-in-from-left-2 duration-700 delay-300">
-                    <ControlNetManager />
-                  </div>
-
-                  <div className="relative">
-                    <Button 
-                      onClick={handleGenerate}
-                      onMouseMove={handleMouseMove}
-                      disabled={isGenerating || !prompt.trim()}
-                      className={`w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium py-3 
-                        transition-all duration-300 hover:scale-105 hover:shadow-xl 
-                        active:scale-95 disabled:hover:scale-100 disabled:hover:shadow-none
-                        relative overflow-hidden
-                        ${isGenerating ? 'animate-pulse' : ''}
-                      `}
-                      style={{
-                        background: isGenerating || !prompt.trim() ? undefined : `
-                          radial-gradient(circle 100px at ${mousePosition.x}px ${mousePosition.y}px, 
-                            rgba(255, 255, 0, 0.3), 
-                            transparent 70%
-                          ),
-                          linear-gradient(to right, rgb(147, 51, 234), rgb(219, 39, 119))
-                        `
-                      }}
-                    >
-                      {isGenerating ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          <span className="animate-pulse">Generating...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Play className="w-4 h-4 mr-2 transition-transform group-hover:scale-110" />
-                          Generate
-                        </>
-                      )}
-                    </Button>
-                    
-                    {/* Ripple effect overlay */}
-                    <div className="absolute inset-0 rounded-md overflow-hidden pointer-events-none">
-                      <div className={`absolute inset-0 bg-white/20 rounded-full scale-0 ${
-                        isGenerating ? 'animate-ping' : ''
-                      }`} />
-                    </div>
-
-                    {/* Success checkmark */}
-                    {showSuccess && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-green-500/20 rounded-md animate-in fade-in-0 duration-300">
-                        <Check className="w-6 h-6 text-green-400 animate-in scale-in-0 duration-500" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Result Section */}
-                <div className="space-y-6">
-                  <Card className="bg-slate-800/50 border-slate-700 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300">
-                    <CardHeader>
-                      <CardTitle className="text-white flex items-center gap-2">
-                        <ImageIcon className="w-5 h-5" />
-                        Result
-                        <Badge variant="secondary" className={`ml-auto transition-all duration-300 ${
-                          isGenerating 
-                            ? "bg-orange-500/20 text-orange-300 animate-pulse" 
-                            : generatedImage 
-                              ? "bg-green-500/20 text-green-300" 
-                              : "bg-slate-700 text-slate-300"
-                        }`}>
-                          {isGenerating ? "Generating..." : generatedImage ? "Complete" : "Idle"}
-                        </Badge>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="aspect-square bg-slate-900/50 border-2 border-dashed border-slate-600 rounded-lg flex items-center justify-center overflow-hidden relative">
-                        {isGenerating ? (
-                          <div className="text-center">
-                            {/* Shimmer loader */}
-                            <div className="absolute inset-0 shimmer-bg animate-shimmer" />
-                            <div className="animate-pulse relative z-10">
-                              <ImageIcon className="w-16 h-16 text-slate-400 mx-auto mb-4" />
-                              <p className="text-slate-400">Generating your image...</p>
-                            </div>
-                          </div>
-                        ) : generatedImage ? (
-                          <img 
-                            src={generatedImage} 
-                            alt="Generated image"
-                            className="w-full h-full object-cover rounded-lg animate-in fade-in-0 scale-in-95 duration-700"
-                            onLoad={handleImageLoad}
-                            onError={handleImageError}
-                          />
-                        ) : (
-                          <div className="text-center transition-all duration-300 hover:scale-105">
-                            <ImageIcon className="w-16 h-16 text-slate-500 mx-auto mb-4 transition-colors duration-300" />
-                            <p className="text-slate-500">Click Generate to create an image</p>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
+              <PlaygroundContent
+                prompt={prompt}
+                onPromptChange={setPrompt}
+                controlImage={controlImage}
+                onControlImageChange={setControlImage}
+                width={width}
+                height={height}
+                numInferenceSteps={numInferenceSteps}
+                guidanceScale={guidanceScale}
+                loraScales={loraScales}
+                onWidthChange={setWidth}
+                onHeightChange={setHeight}
+                onStepsChange={setNumInferenceSteps}
+                onGuidanceScaleChange={setGuidanceScale}
+                onLoraScalesChange={setLoraScales}
+                isGenerating={isGenerating}
+                generatedImage={generatedImage}
+                showSuccess={showSuccess}
+                onGenerate={handleGenerate}
+                onImageLoad={handleImageLoad}
+                onImageError={handleImageError}
+              />
             </TabsContent>
 
             <TabsContent value="docs" className="mt-6 animate-in slide-in-from-bottom-2 duration-500">
