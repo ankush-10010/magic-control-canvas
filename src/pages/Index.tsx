@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -314,9 +315,9 @@ const Index = () => {
                       style={{
                         background: isGenerating || !prompt.trim() ? undefined : `
                           radial-gradient(circle 100px at ${mousePosition.x}px ${mousePosition.y}px, 
-                            rgba(147, 51, 234, 0.8), 
-                            rgba(147, 51, 234, 0.6) 50%, 
-                            rgba(147, 51, 234, 0.4) 100%
+                            rgba(255, 255, 0, 0.8), 
+                            rgba(255, 255, 0, 0.6) 50%, 
+                            rgba(255, 255, 0, 0.4) 100%
                           ),
                           linear-gradient(to right, rgb(147, 51, 234), rgb(219, 39, 119))
                         `
