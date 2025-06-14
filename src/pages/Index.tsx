@@ -33,7 +33,7 @@ const Index = () => {
   const { toast } = useToast();
 
   // Backend configuration - replace with your ngrok URL
-  const backendUrl = "http://localhost:8000"; // Change this to your ngrok URL when needed
+  const backendUrl = "https://0f2d-35-240-133-85.ngrok-free.app"; // Change this to your ngrok URL when needed
 
   const handleControlImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

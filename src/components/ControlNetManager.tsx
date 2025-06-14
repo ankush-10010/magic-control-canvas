@@ -37,7 +37,7 @@ const ControlNetManager = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   
   const { toast } = useToast();
-  const backendUrl = "http://localhost:8000";
+  const backendUrl = "https://0f2d-35-240-133-85.ngrok-free.app";
 
   // Fetch active ControlNets
   const fetchActiveControlNets = async () => {

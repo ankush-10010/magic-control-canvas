@@ -21,7 +21,7 @@ const PipelineStatusPanel = () => {
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const { toast } = useToast();
 
-  const backendUrl = "http://localhost:8000";
+  const backendUrl = "https://0f2d-35-240-133-85.ngrok-free.app";
 
   const fetchPipelineState = async (showLoadingIndicator = true) => {
     if (showLoadingIndicator) setIsLoading(true);

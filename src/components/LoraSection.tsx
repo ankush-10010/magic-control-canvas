@@ -51,7 +51,7 @@ const LoraSection = () => {
       formData.append("lora_path", newLoraPath);
       formData.append("adapter_name", newLoraName);
 
-      const response = await fetch("http://localhost:8000/load-lora/", {
+      const response = await fetch("https://0f2d-35-240-133-85.ngrok-free.app/load-lora/", {
         method: "POST",
         body: formData,
       });
