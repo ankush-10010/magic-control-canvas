@@ -1,86 +1,26 @@
 
-import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Activity, RefreshCw, Zap, CheckCircle, Circle } from "lucide-react";
+import { Activity, RefreshCw } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { backendConfig, getApiUrl } from "@/config/backend";
-
-interface PipelineState {
-  pipeline_type: string;
-  active_controlnet: boolean;
-  active_adapters: string[];
-}
+import { usePipelineStatus } from "@/hooks/usePipelineStatus";
+import PipelineTypeDisplay from "./pipeline/PipelineTypeDisplay";
+import ControlNetStatus from "./pipeline/ControlNetStatus";
+import ActiveAdapters from "./pipeline/ActiveAdapters";
 
 interface PipelineStatusPanelProps {
   onError?: (message: string) => void;
 }
 
 const PipelineStatusPanel = ({ onError }: PipelineStatusPanelProps) => {
-  const [pipelineState, setPipelineState] = useState<PipelineState | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasError, setHasError] = useState(false);
-  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-
-  const fetchPipelineState = async (showLoadingIndicator = true) => {
-    if (showLoadingIndicator) setIsLoading(true);
-    try {
-      const response = await fetch(getApiUrl('/pipeline-state/'), {
-        headers: backendConfig.headers
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setPipelineState(data);
-        setHasError(false);
-        setLastUpdate(new Date());
-      } else {
-        throw new Error('Failed to fetch pipeline state');
-      }
-    } catch (err) {
-      const errorMessage = 'Failed to connect to pipeline';
-      setHasError(true);
-      if (onError) {
-        onError(errorMessage);
-      }
-    } finally {
-      if (showLoadingIndicator) setIsLoading(false);
-    }
-  };
-
-  // Auto-refresh every 5 seconds
-  useEffect(() => {
-    fetchPipelineState();
-    const interval = setInterval(() => {
-      fetchPipelineState(false); // Silent refresh
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const getPipelineIcon = (pipelineType: string) => {
-    if (pipelineType.includes('Stable')) return <Zap className="w-4 h-4" />;
-    return <Activity className="w-4 h-4" />;
-  };
-
-  const getStatusColor = () => {
-    if (hasError) return "destructive";
-    if (pipelineState?.active_controlnet) return "default";
-    return "secondary";
-  };
-
-  const getStatusText = () => {
-    if (hasError) return "Connection Failed";
-    if (pipelineState?.active_controlnet) return "ControlNet Active";
-    return "No ControlNet";
-  };
-
-  const getStatusIcon = () => {
-    if (pipelineState?.active_controlnet) return <CheckCircle className="w-3 h-3" />;
-    return <Circle className="w-3 h-3" />;
-  };
+  const {
+    pipelineState,
+    isLoading,
+    hasError,
+    lastUpdate,
+    fetchPipelineState
+  } = usePipelineStatus(onError);
 
   return (
     <Card className="bg-slate-800/50 border-slate-700 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300">
@@ -129,62 +69,18 @@ const PipelineStatusPanel = ({ onError }: PipelineStatusPanelProps) => {
       <CardContent className="space-y-4">
         {/* Pipeline Type */}
         {pipelineState && (
-          <div className="flex items-center justify-between p-3 bg-slate-900/30 rounded-lg border border-slate-600">
-            <div className="flex items-center gap-3">
-              {getPipelineIcon(pipelineState.pipeline_type)}
-              <div>
-                <p className="text-white font-medium">Pipeline Type</p>
-                <p className="text-slate-300 text-sm">{pipelineState.pipeline_type}</p>
-              </div>
-            </div>
-          </div>
+          <PipelineTypeDisplay pipelineType={pipelineState.pipeline_type} />
         )}
 
         {/* ControlNet Status */}
-        <div className="flex items-center justify-between p-3 bg-slate-900/30 rounded-lg border border-slate-600">
-          <div className="flex items-center gap-3">
-            {getStatusIcon()}
-            <div>
-              <p className="text-white font-medium">ControlNet Status</p>
-              <Badge variant={getStatusColor()} className="mt-1">
-                {getStatusText()}
-              </Badge>
-            </div>
-          </div>
-        </div>
+        <ControlNetStatus 
+          hasError={hasError} 
+          activeControlnet={pipelineState?.active_controlnet} 
+        />
 
         {/* Active Adapters */}
-        {pipelineState && pipelineState.active_adapters.length > 0 && (
-          <>
-            <Separator className="bg-slate-600" />
-            <div className="space-y-3">
-              <p className="text-white font-medium flex items-center gap-2">
-                Active Adapters
-                <Badge variant="secondary" className="bg-slate-700 text-slate-300">
-                  {pipelineState.active_adapters.length}
-                </Badge>
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {pipelineState.active_adapters.map((adapter, index) => (
-                  <TooltipProvider key={index}>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <Badge 
-                          variant="outline" 
-                          className="bg-purple-500/20 text-purple-300 border-purple-500/50 hover:bg-purple-500/30 cursor-default transition-colors duration-200"
-                        >
-                          {adapter}
-                        </Badge>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Active adapter: {adapter}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ))}
-              </div>
-            </div>
-          </>
+        {pipelineState && (
+          <ActiveAdapters activeAdapters={pipelineState.active_adapters} />
         )}
 
         {/* Loading State */}
