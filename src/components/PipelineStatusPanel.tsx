@@ -1,11 +1,11 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Activity, RefreshCw, Zap, AlertCircle, CheckCircle, Circle } from "lucide-react";
+import { Activity, RefreshCw, Zap, CheckCircle, Circle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useToast } from "@/hooks/use-toast";
 import { backendConfig, getApiUrl } from "@/config/backend";
 
 interface PipelineState {
@@ -14,12 +14,15 @@ interface PipelineState {
   active_adapters: string[];
 }
 
-const PipelineStatusPanel = () => {
+interface PipelineStatusPanelProps {
+  onError?: (message: string) => void;
+}
+
+const PipelineStatusPanel = ({ onError }: PipelineStatusPanelProps) => {
   const [pipelineState, setPipelineState] = useState<PipelineState | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [hasError, setHasError] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-  const { toast } = useToast();
 
   const fetchPipelineState = async (showLoadingIndicator = true) => {
     if (showLoadingIndicator) setIsLoading(true);
@@ -31,20 +34,16 @@ const PipelineStatusPanel = () => {
       if (response.ok) {
         const data = await response.json();
         setPipelineState(data);
-        setError(null);
+        setHasError(false);
         setLastUpdate(new Date());
       } else {
         throw new Error('Failed to fetch pipeline state');
       }
     } catch (err) {
       const errorMessage = 'Failed to connect to pipeline';
-      setError(errorMessage);
-      if (showLoadingIndicator) {
-        toast({
-          title: "Connection Error",
-          description: errorMessage,
-          variant: "destructive",
-        });
+      setHasError(true);
+      if (onError) {
+        onError(errorMessage);
       }
     } finally {
       if (showLoadingIndicator) setIsLoading(false);
@@ -67,19 +66,18 @@ const PipelineStatusPanel = () => {
   };
 
   const getStatusColor = () => {
-    if (error) return "destructive";
+    if (hasError) return "destructive";
     if (pipelineState?.active_controlnet) return "default";
     return "secondary";
   };
 
   const getStatusText = () => {
-    if (error) return "Connection Failed";
+    if (hasError) return "Connection Failed";
     if (pipelineState?.active_controlnet) return "ControlNet Active";
     return "No ControlNet";
   };
 
   const getStatusIcon = () => {
-    if (error) return <AlertCircle className="w-3 h-3" />;
     if (pipelineState?.active_controlnet) return <CheckCircle className="w-3 h-3" />;
     return <Circle className="w-3 h-3" />;
   };
@@ -101,9 +99,9 @@ const PipelineStatusPanel = () => {
                     size="sm"
                     onClick={() => fetchPipelineState(true)}
                     disabled={isLoading}
-                    className="text-slate-300 hover:text-white hover:bg-slate-700 h-8 w-8 p-0"
+                    className="text-slate-300 hover:text-white hover:bg-slate-700 h-8 w-8 p-0 transition-all duration-200 ease-in-out"
                   >
-                    <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                    <RefreshCw className={`w-4 h-4 transition-transform duration-200 ${isLoading ? 'animate-spin' : ''}`} />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -185,17 +183,6 @@ const PipelineStatusPanel = () => {
                   </TooltipProvider>
                 ))}
               </div>
-            </div>
-          </>
-        )}
-
-        {/* Error State */}
-        {error && (
-          <>
-            <Separator className="bg-slate-600" />
-            <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-              <AlertCircle className="w-4 h-4 text-red-400" />
-              <p className="text-red-300 text-sm">{error}</p>
             </div>
           </>
         )}

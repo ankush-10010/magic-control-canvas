@@ -17,7 +17,7 @@ interface LoraItem {
   scale: number;
 }
 
-const LoraSection = () => {
+const LoraSection = ({ onError }: { onError?: (message: string) => void }) => {
   const [loras, setLoras] = useState<LoraItem[]>([]);
   const [newLoraName, setNewLoraName] = useState('');
   const [newLoraPath, setNewLoraPath] = useState('');
@@ -27,20 +27,16 @@ const LoraSection = () => {
 
   const addLora = async () => {
     if (!newLoraPath) {
-      toast({
-        title: "Error",
-        description: "LoRA Path/ID is required",
-        variant: "destructive",
-      });
+      if (onError) {
+        onError("LoRA Path/ID is required");
+      }
       return;
     }
 
     if (!newLoraName) {
-      toast({
-        title: "Error",
-        description: "LoRA Name is required (used as adapter name)",
-        variant: "destructive",
-      });
+      if (onError) {
+        onError("LoRA Name is required (used as adapter name)");
+      }
       return;
     }
 
@@ -73,24 +69,15 @@ const LoraSection = () => {
         // Show success animation
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 2000);
-
-        toast({
-          title: "Success",
-          description: result.message || "LoRA loaded successfully",
-        });
       } else {
-        toast({
-          title: "Error",
-          description: result.detail || result.message || "Failed to load LoRA",
-          variant: "destructive",
-        });
+        if (onError) {
+          onError(result.detail || result.message || "Failed to load LoRA");
+        }
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to connect to the backend. Make sure your FastAPI server is running on http://localhost:8000",
-        variant: "destructive",
-      });
+      if (onError) {
+        onError("Failed to connect to the backend. Make sure your FastAPI server is running on http://localhost:8000");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -152,7 +139,7 @@ const LoraSection = () => {
           <div className="relative">
             <Button 
               onClick={addLora}
-              className="w-full bg-purple-600 hover:bg-purple-700 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/50 active:scale-95"
+              className="w-full bg-purple-600 hover:bg-purple-700 transition-all duration-200 ease-in-out transform hover:scale-[1.02] active:scale-[0.98]"
               disabled={!newLoraPath || !newLoraName || isLoading}
             >
               {isLoading ? (
@@ -194,14 +181,14 @@ const LoraSection = () => {
                     <p className="text-sm text-slate-400">{lora.path}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="bg-slate-700 text-slate-300 transition-all duration-300 hover:bg-slate-600">
+                    <Badge variant="secondary" className="bg-slate-700 text-slate-300 transition-all duration-200 hover:bg-slate-600">
                       {lora.scale.toFixed(1)}
                     </Badge>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => removeLora(lora.id)}
-                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-300 hover:scale-110"
+                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200 ease-in-out transform hover:scale-110 active:scale-95"
                     >
                       <X className="w-4 h-4" />
                     </Button>

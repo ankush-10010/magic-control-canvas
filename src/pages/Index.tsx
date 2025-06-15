@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +8,8 @@ import TabNavigation from "@/components/TabNavigation";
 import PlaygroundContent from "@/components/PlaygroundContent";
 import DocumentationPanel from "@/components/DocumentationPanel";
 import { backendConfig, getApiUrl } from "@/config/backend";
+import ErrorManager from "@/components/ErrorManager";
+import { useErrorManager } from "@/hooks/useErrorManager";
 
 const Index = () => {
   const [prompt, setPrompt] = useState("Extreme close-up of a single tiger eye, direct frontal view. Detailed iris and pupil. Sharp focus on eye texture and color. Natural lighting to capture authentic eye shine and depth. The word \"FLUX\" is painted over it in big, white brush strokes with visible texture.");
@@ -26,14 +27,11 @@ const Index = () => {
   const [loraScales, setLoraScales] = useState<Record<string, number>>({});
   
   const { toast } = useToast();
+  const { errors, addError, clearError, clearAllErrors } = useErrorManager();
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter a prompt",
-        variant: "destructive",
-      });
+      addError("Please enter a prompt");
       return;
     }
 
@@ -95,11 +93,7 @@ const Index = () => {
 
     } catch (error) {
       console.error('Error generating image:', error);
-      toast({
-        title: "Error",
-        description: "Failed to generate image. Make sure your backend is running.",
-        variant: "destructive",
-      });
+      addError("Failed to generate image. Make sure your backend is running.");
     } finally {
       setIsGenerating(false);
     }
@@ -166,6 +160,7 @@ const Index = () => {
                 onGenerate={handleGenerate}
                 onImageLoad={handleImageLoad}
                 onImageError={handleImageError}
+                onError={addError}
               />
             </TabsContent>
 
@@ -196,6 +191,13 @@ const Index = () => {
             </TabsContent>
           </Tabs>
         </div>
+
+        {/* Error Manager */}
+        <ErrorManager
+          errors={errors}
+          onClearError={clearError}
+          onClearAll={clearAllErrors}
+        />
       </div>
 
       {/* CSS for shimmer animation */}

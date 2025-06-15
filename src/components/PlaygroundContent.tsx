@@ -1,4 +1,3 @@
-
 import { useState, useRef } from 'react';
 import { Settings, Activity, Layers, Grid3X3 } from "lucide-react";
 import PromptInput from "./PromptInput";
@@ -32,6 +31,7 @@ interface PlaygroundContentProps {
   onGenerate: () => void;
   onImageLoad: () => void;
   onImageError: (e: React.SyntheticEvent<HTMLImageElement, Event>) => void;
+  onError?: (message: string) => void;
 }
 
 const PlaygroundContent = ({
@@ -54,7 +54,8 @@ const PlaygroundContent = ({
   showSuccess,
   onGenerate,
   onImageLoad,
-  onImageError
+  onImageError,
+  onError
 }: PlaygroundContentProps) => {
   const [openSections, setOpenSections] = useState({
     controls: false,
@@ -170,7 +171,7 @@ const PlaygroundContent = ({
             title="Pipeline Status"
             icon={<Activity className="w-5 h-5" />}
           >
-            <PipelineStatusPanel />
+            <PipelineStatusPanel onError={onError} />
           </EnhancedCollapsibleSection>
 
           <EnhancedCollapsibleSection
@@ -178,7 +179,7 @@ const PlaygroundContent = ({
             title="LoRAs"
             icon={<Layers className="w-5 h-5" />}
           >
-            <LoraSection />
+            <LoraSection onError={onError} />
           </EnhancedCollapsibleSection>
           
           <EnhancedCollapsibleSection
