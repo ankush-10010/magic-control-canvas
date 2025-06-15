@@ -1,96 +1,23 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
-import { Badge } from "@/components/ui/badge";
-import { Plus, X, Layers, Info, Check } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useToast } from "@/hooks/use-toast";
-import { getApiUrl } from "@/config/backend";
 
-interface LoraItem {
-  id: string;
-  name: string;
-  path: string;
-  scale: number;
-}
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Layers, Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useLoraManager } from "@/hooks/useLoraManager";
+import LoraForm from "./lora/LoraForm";
+import LoraList from "./lora/LoraList";
 
 const LoraSection = ({ onError }: { onError?: (message: string) => void }) => {
-  const [loras, setLoras] = useState<LoraItem[]>([]);
-  const [newLoraName, setNewLoraName] = useState('');
-  const [newLoraPath, setNewLoraPath] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const { toast } = useToast();
+  const {
+    loras,
+    isLoading,
+    showSuccess,
+    addLora,
+    removeLora,
+    updateLoraScale
+  } = useLoraManager();
 
-  const addLora = async () => {
-    if (!newLoraPath) {
-      if (onError) {
-        onError("LoRA Path/ID is required");
-      }
-      return;
-    }
-
-    if (!newLoraName) {
-      if (onError) {
-        onError("LoRA Name is required (used as adapter name)");
-      }
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const formData = new FormData();
-      formData.append("lora_path", newLoraPath);
-      formData.append("adapter_name", newLoraName);
-
-      const response = await fetch(getApiUrl("/load-lora/"), {
-        method: "POST",
-        body: formData,
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        // Add to local state for UI tracking
-        const newLora: LoraItem = {
-          id: Date.now().toString(),
-          name: newLoraName,
-          path: newLoraPath,
-          scale: 1.0
-        };
-        setLoras([...loras, newLora]);
-        setNewLoraName('');
-        setNewLoraPath('');
-
-        // Show success animation
-        setShowSuccess(true);
-        setTimeout(() => setShowSuccess(false), 2000);
-      } else {
-        if (onError) {
-          onError(result.detail || result.message || "Failed to load LoRA");
-        }
-      }
-    } catch (error) {
-      if (onError) {
-        onError("Failed to connect to the backend. Make sure your FastAPI server is running on http://localhost:8000");
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const removeLora = (id: string) => {
-    setLoras(loras.filter(lora => lora.id !== id));
-  };
-
-  const updateLoraScale = (id: string, scale: number) => {
-    setLoras(loras.map(lora => 
-      lora.id === id ? { ...lora, scale } : lora
-    ));
+  const handleAddLora = async (name: string, path: string) => {
+    return await addLora(name, path, onError);
   };
 
   return (
@@ -112,103 +39,17 @@ const LoraSection = ({ onError }: { onError?: (message: string) => void }) => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Add LoRA Form */}
-        <div className="space-y-3 p-4 bg-slate-900/50 rounded-lg border border-slate-600 hover:border-slate-500 transition-all duration-300 hover:shadow-md">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label className="text-slate-300 text-sm">Name (Adapter Name) *</Label>
-              <Input
-                value={newLoraName}
-                onChange={(e) => setNewLoraName(e.target.value)}
-                placeholder="LoRA adapter name"
-                className="bg-slate-800 border-slate-600 text-white transition-all duration-300 hover:border-slate-500 focus:border-purple-500 focus:shadow-lg focus:shadow-purple-500/25"
-                disabled={isLoading}
-              />
-            </div>
-            <div>
-              <Label className="text-slate-300 text-sm">Path/ID *</Label>
-              <Input
-                value={newLoraPath}
-                onChange={(e) => setNewLoraPath(e.target.value)}
-                placeholder="model/path or ID"
-                className="bg-slate-800 border-slate-600 text-white transition-all duration-300 hover:border-slate-500 focus:border-purple-500 focus:shadow-lg focus:shadow-purple-500/25"
-                disabled={isLoading}
-              />
-            </div>
-          </div>
-          <div className="relative">
-            <Button 
-              onClick={addLora}
-              className="w-full bg-purple-600 hover:bg-purple-700 transition-all duration-200 ease-in-out transform hover:scale-[1.02] active:scale-[0.98]"
-              disabled={!newLoraPath || !newLoraName || isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Loading LoRA...
-                </>
-              ) : (
-                <>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add LoRA
-                </>
-              )}
-            </Button>
-            
-            {/* Success overlay */}
-            {showSuccess && (
-              <div className="absolute inset-0 flex items-center justify-center bg-green-500/20 rounded-md animate-in fade-in-0 duration-300">
-                <Check className="w-5 h-5 text-green-400 animate-in scale-in-0 duration-500" />
-              </div>
-            )}
-          </div>
-        </div>
+        <LoraForm
+          onAddLora={handleAddLora}
+          isLoading={isLoading}
+          showSuccess={showSuccess}
+        />
 
-        {/* LoRA List */}
-        <div className="space-y-3">
-          {loras.length === 0 ? (
-            <div className="text-center py-6 text-slate-400 transition-all duration-300 hover:text-slate-300">
-              <Layers className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p>No LoRAs added yet</p>
-            </div>
-          ) : (
-            loras.map((lora, index) => (
-              <div key={lora.id} className="p-3 bg-slate-900/30 rounded-lg border border-slate-600 hover:border-slate-500 transition-all duration-300 hover:shadow-md animate-in slide-in-from-left-2 duration-500" 
-                   style={{ animationDelay: `${index * 100}ms` }}>
-                <div className="flex items-center justify-between mb-2">
-                  <div>
-                    <h4 className="text-white font-medium">{lora.name}</h4>
-                    <p className="text-sm text-slate-400">{lora.path}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="bg-slate-700 text-slate-300 transition-all duration-200 hover:bg-slate-600">
-                      {lora.scale.toFixed(1)}
-                    </Badge>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeLora(lora.id)}
-                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200 ease-in-out transform hover:scale-110 active:scale-95"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-slate-300 text-sm">Scale: {lora.scale}</Label>
-                  <Slider
-                    value={[lora.scale]}
-                    onValueChange={(value) => updateLoraScale(lora.id, value[0])}
-                    max={2}
-                    min={-2}
-                    step={0.1}
-                    className="w-full"
-                  />
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+        <LoraList
+          loras={loras}
+          onRemoveLora={removeLora}
+          onUpdateLoraScale={updateLoraScale}
+        />
       </CardContent>
     </Card>
   );
