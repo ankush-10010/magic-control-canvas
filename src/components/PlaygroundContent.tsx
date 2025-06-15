@@ -1,4 +1,6 @@
 
+import { useState, useRef } from 'react';
+import { Settings, Activity, Layers, Grid3X3 } from "lucide-react";
 import PromptInput from "./PromptInput";
 import GenerationControls from "./GenerationControls";
 import PipelineStatusPanel from "./PipelineStatusPanel";
@@ -6,6 +8,8 @@ import LoraSection from "./LoraSection";
 import ControlNetManager from "./ControlNetManager";
 import GenerateButton from "./GenerateButton";
 import ImageDisplay from "./ImageDisplay";
+import CollapsibleSection from "./CollapsibleSection";
+import CollapsibleControls from "./CollapsibleControls";
 
 interface PlaygroundContentProps {
   prompt: string;
@@ -52,6 +56,77 @@ const PlaygroundContent = ({
   onImageLoad,
   onImageError
 }: PlaygroundContentProps) => {
+  const [openSections, setOpenSections] = useState({
+    controls: false,
+    pipeline: false,
+    loras: false,
+    controlnet: false
+  });
+
+  const sectionRefs = {
+    controls: useRef<{ setOpen: (open: boolean) => void }>(null),
+    pipeline: useRef<{ setOpen: (open: boolean) => void }>(null),
+    loras: useRef<{ setOpen: (open: boolean) => void }>(null),
+    controlnet: useRef<{ setOpen: (open: boolean) => void }>(null)
+  };
+
+  const handleExpandAll = () => {
+    setOpenSections({
+      controls: true,
+      pipeline: true,
+      loras: true,
+      controlnet: true
+    });
+  };
+
+  const handleCollapseAll = () => {
+    setOpenSections({
+      controls: false,
+      pipeline: false,
+      loras: false,
+      controlnet: false
+    });
+  };
+
+  const openSectionCount = Object.values(openSections).filter(Boolean).length;
+
+  // Enhanced CollapsibleSection that exposes setOpen method
+  const EnhancedCollapsibleSection = ({ 
+    sectionKey, 
+    title, 
+    icon, 
+    children, 
+    className = "" 
+  }: {
+    sectionKey: keyof typeof openSections;
+    title: string;
+    icon: React.ReactNode;
+    children: React.ReactNode;
+    className?: string;
+  }) => {
+    const isOpen = openSections[sectionKey];
+    
+    const toggleSection = () => {
+      setOpenSections(prev => ({
+        ...prev,
+        [sectionKey]: !prev[sectionKey]
+      }));
+    };
+
+    return (
+      <CollapsibleSection
+        title={title}
+        icon={icon}
+        defaultOpen={isOpen}
+        className={className}
+        onToggle={toggleSection}
+        isOpen={isOpen}
+      >
+        {children}
+      </CollapsibleSection>
+    );
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Input Section */}
@@ -63,29 +138,56 @@ const PlaygroundContent = ({
           onControlImageChange={onControlImageChange}
         />
 
-        <GenerationControls
-          width={width}
-          height={height}
-          numInferenceSteps={numInferenceSteps}
-          guidanceScale={guidanceScale}
-          loraScales={loraScales}
-          onWidthChange={onWidthChange}
-          onHeightChange={onHeightChange}
-          onStepsChange={onStepsChange}
-          onGuidanceScaleChange={onGuidanceScaleChange}
-          onLoraScalesChange={onLoraScalesChange}
+        <CollapsibleControls
+          onExpandAll={handleExpandAll}
+          onCollapseAll={handleCollapseAll}
+          openSections={openSectionCount}
+          totalSections={4}
         />
 
-        <div className="animate-in slide-in-from-left-2 duration-700 delay-100">
-          <PipelineStatusPanel />
-        </div>
+        <div className="space-y-4 animate-in slide-in-from-left-2 duration-700">
+          <EnhancedCollapsibleSection
+            sectionKey="controls"
+            title="Generation Controls"
+            icon={<Settings className="w-5 h-5" />}
+          >
+            <GenerationControls
+              width={width}
+              height={height}
+              numInferenceSteps={numInferenceSteps}
+              guidanceScale={guidanceScale}
+              loraScales={loraScales}
+              onWidthChange={onWidthChange}
+              onHeightChange={onHeightChange}
+              onStepsChange={onStepsChange}
+              onGuidanceScaleChange={onGuidanceScaleChange}
+              onLoraScalesChange={onLoraScalesChange}
+            />
+          </EnhancedCollapsibleSection>
 
-        <div className="animate-in slide-in-from-left-2 duration-700 delay-200">
-          <LoraSection />
-        </div>
-        
-        <div className="animate-in slide-in-from-left-2 duration-700 delay-300">
-          <ControlNetManager />
+          <EnhancedCollapsibleSection
+            sectionKey="pipeline"
+            title="Pipeline Status"
+            icon={<Activity className="w-5 h-5" />}
+          >
+            <PipelineStatusPanel />
+          </EnhancedCollapsibleSection>
+
+          <EnhancedCollapsibleSection
+            sectionKey="loras"
+            title="LoRAs"
+            icon={<Layers className="w-5 h-5" />}
+          >
+            <LoraSection />
+          </EnhancedCollapsibleSection>
+          
+          <EnhancedCollapsibleSection
+            sectionKey="controlnet"
+            title="ControlNet Manager"
+            icon={<Grid3X3 className="w-5 h-5" />}
+          >
+            <ControlNetManager />
+          </EnhancedCollapsibleSection>
         </div>
 
         <GenerateButton
