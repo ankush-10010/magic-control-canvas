@@ -29,7 +29,7 @@ const ImageDisplay = ({ isGenerating, generatedImage, onImageLoad, onImageError 
         </CardTitle>
       </CardHeader>
       <CardContent>
-                <div className="w-[600px] h-[400px] bg-slate-900/50 border-2 border-dashed border-slate-600 rounded-lg flex items-center justify-center overflow-hidden relative">
+                <div className="w-[400px] h-[400px] bg-slate-900/50 border-2 border-dashed border-slate-600 rounded-lg flex items-center justify-center overflow-hidden relative">
           {isGenerating ? (
             <div className="text-center">
               {/* Shimmer loader */}
