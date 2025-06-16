@@ -1,12 +1,12 @@
 
 import { TabsContent } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import PlaygroundContent from "@/components/PlaygroundContent";
 import DocumentationPanel from "@/components/DocumentationPanel";
+import SystemDashboard from "@/components/SystemDashboard";
 
 interface TabContentProps {
   prompt: string;
-  onPromptChange: (prompt: string) => void;
+  onPromptChange: (value: string) => void;
   controlImage: File | null;
   onControlImageChange: (file: File | null) => void;
   width: number;
@@ -14,10 +14,10 @@ interface TabContentProps {
   numInferenceSteps: number;
   guidanceScale: number;
   loraScales: Record<string, number>;
-  onWidthChange: (width: number) => void;
-  onHeightChange: (height: number) => void;
-  onStepsChange: (steps: number) => void;
-  onGuidanceScaleChange: (scale: number) => void;
+  onWidthChange: (value: number) => void;
+  onHeightChange: (value: number) => void;
+  onStepsChange: (value: number) => void;
+  onGuidanceScaleChange: (value: number) => void;
   onLoraScalesChange: (scales: Record<string, number>) => void;
   isGenerating: boolean;
   generatedImage: string | null;
@@ -53,7 +53,7 @@ const TabContent = ({
 }: TabContentProps) => {
   return (
     <>
-      <TabsContent value="playground" className="mt-6 animate-in slide-in-from-bottom-2 duration-500">
+      <TabsContent value="playground" className="space-y-4">
         <PlaygroundContent
           prompt={prompt}
           onPromptChange={onPromptChange}
@@ -79,30 +79,12 @@ const TabContent = ({
         />
       </TabsContent>
 
-      <TabsContent value="docs" className="mt-6 animate-in slide-in-from-bottom-2 duration-500">
+      <TabsContent value="documentation" className="space-y-4">
         <DocumentationPanel />
       </TabsContent>
 
-      <TabsContent value="api" className="mt-6 animate-in slide-in-from-bottom-2 duration-500">
-        <Card className="bg-slate-800/50 border-slate-700">
-          <CardHeader>
-            <CardTitle className="text-white">API Documentation</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-slate-300">API endpoints and integration guides coming soon...</p>
-          </CardContent>
-        </Card>
-      </TabsContent>
-
-      <TabsContent value="examples" className="mt-6 animate-in slide-in-from-bottom-2 duration-500">
-        <Card className="bg-slate-800/50 border-slate-700">
-          <CardHeader>
-            <CardTitle className="text-white">Example Generations</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-slate-300">Example gallery and templates coming soon...</p>
-          </CardContent>
-        </Card>
+      <TabsContent value="dashboard" className="space-y-4">
+        <SystemDashboard />
       </TabsContent>
     </>
   );
