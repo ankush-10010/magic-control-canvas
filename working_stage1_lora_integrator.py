@@ -195,7 +195,39 @@ async def generate(request: PromptRequest):
       )
   except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+import psutil
 
+def get_cpu_ram_stats():
+    ram = psutil.virtual_memory()
+    cpu = psutil.cpu_percent(interval=1)
+    return {
+        "cpu_percent": cpu,
+        "ram_total": ram.total,
+        "ram_used": ram.used,
+        "ram_percent": ram.percent
+    }
+import subprocess
+import re
+
+def get_gpu_stats():
+    try:
+        result = subprocess.check_output(
+            ['nvidia-smi', '--query-gpu=memory.total,memory.used,utilization.gpu', '--format=csv,nounits,noheader']
+        )
+        total, used, utilization = map(int, result.decode().strip().split(', '))
+        return {
+            "gpu_memory_total": total,
+            "gpu_memory_used": used,
+            "gpu_utilization": utilization
+        }
+    except Exception as e:
+        return {"error": str(e)}
+@app.get("/stats")
+def get_stats():
+    return {
+        "cpu_ram": get_cpu_ram_stats(),
+        "gpu": get_gpu_stats()
+    }
 gc.collect()
 torch.cuda.empty_cache()
 
