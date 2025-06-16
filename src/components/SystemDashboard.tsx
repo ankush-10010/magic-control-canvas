@@ -27,6 +27,11 @@ const SystemDashboard = () => {
     return mb.toFixed(0);
   };
 
+  const formatMBtoGB = (mb: number): string => {
+    if (typeof mb !== 'number' || isNaN(mb)) return '0.00';
+    return (mb / 1024).toFixed(2);
+  };
+
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 p-4">
@@ -101,17 +106,14 @@ const SystemDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
+                  <div className="text-center"> {/* Centering the main display text */}
                     <span className="text-2xl font-bold text-white">
-                      {formatBytes(stats.cpu_ram.ram_used)} GB
-                    </span>
-                    <span className="text-slate-300">
-                      / {formatBytes(stats.cpu_ram.ram_total)} GB
+                      {formatBytes(stats.cpu_ram.ram_used)} GB / {formatBytes(stats.cpu_ram.ram_total)} GB
                     </span>
                   </div>
                   <Progress value={stats.cpu_ram.ram_percent} className="h-2" />
-                  <div className="text-sm text-slate-400">
-                    {stats.cpu_ram.ram_percent.toFixed(1)}% used
+                  <div className="text-sm text-slate-400 text-center">
+                    ({stats.cpu_ram.ram_percent.toFixed(1)}% used)
                   </div>
                 </div>
               </CardContent>
@@ -133,31 +135,28 @@ const SystemDashboard = () => {
                       N/A
                     </Badge>
                   </div>
-                ) : (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-2xl font-bold text-white">
-                        {stats.gpu.gpu_utilization}%
-                      </span>
-                      <Badge 
-                        variant="secondary" 
-                        className={
-                          stats.gpu.gpu_utilization > 80 
-                            ? "bg-red-500/20 text-red-300" 
-                            : stats.gpu.gpu_utilization > 60 
-                              ? "bg-yellow-500/20 text-yellow-300" 
-                              : "bg-green-500/20 text-green-300"
-                        }
-                      >
-                        {stats.gpu.gpu_utilization > 80 ? "High" : stats.gpu.gpu_utilization > 60 ? "Medium" : "Normal"}
-                      </Badge>
+                ) : (() => {
+                  const gpuMemoryUsedGB = formatMBtoGB(stats.gpu.gpu_memory_used);
+                  const gpuMemoryTotalGB = formatMBtoGB(stats.gpu.gpu_memory_total);
+                  const gpuMemoryPercentage = stats.gpu.gpu_memory_total > 0 ? (stats.gpu.gpu_memory_used / stats.gpu.gpu_memory_total) * 100 : 0;
+
+                  return (
+                    <div className="space-y-3">
+                      <div className="text-center"> {/* Centering the main display text */}
+                        <span className="text-2xl font-bold text-white">
+                          {gpuMemoryUsedGB} GB / {gpuMemoryTotalGB} GB
+                        </span>
+                      </div>
+                      <Progress value={gpuMemoryPercentage} className="h-2" />
+                      <div className="text-sm text-slate-400 text-center">
+                        ({gpuMemoryPercentage.toFixed(1)}% used)
+                      </div>
+                      <div className="text-sm text-slate-400">
+                        Utilization: {stats.gpu.gpu_utilization.toFixed(1)}%
+                      </div>
                     </div>
-                    <Progress value={stats.gpu.gpu_utilization} className="h-2" />
-                    <div className="text-sm text-slate-400">
-                      Memory: {formatMB(stats.gpu.gpu_memory_used)} / {formatMB(stats.gpu.gpu_memory_total)} MB
-                    </div>
-                  </div>
-                )}
+                  );
+                })()}
               </CardContent>
             </Card>
           </div>
