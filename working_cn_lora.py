@@ -13,7 +13,12 @@ Original file is located at
 # !pip install fastapi uvicorn
 
 # !pip install diffusers
-
+"""
+this code is working for addition of control net , addition of control image , addition of lora 
+also it is not working for the base condition
+also features like deload lora and delora control net are not working 
+to remove the error message cannot connect to pipeline , just generate image for one time
+"""
 import torch
 import gc
 gc.collect()
