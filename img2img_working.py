@@ -1184,7 +1184,7 @@ torch.cuda.empty_cache()
 import uvicorn
 from pyngrok import ngrok
 import nest_asyncio
-!ngrok authtoken 2xNBjsJZTEMSyZIjuNauqUwXAxK_3YEAxPqFauzLBSHA8EJvn
+!ngrok authtoken 2xNBjsJZTEMSyZIjuYEAxPqFauzLBSHA8EJv
 # Allow async in Colab
 nest_asyncio.apply()
 
